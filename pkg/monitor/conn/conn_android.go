@@ -1,4 +1,4 @@
-//go:build android
+﻿//go:build android
 
 // Android 专用网络连接数监控实现
 // 直接读取 /proc/net/tcp 和 /proc/net/udp 统计连接数，绕过 goss 库

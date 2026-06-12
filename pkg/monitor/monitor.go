@@ -1,4 +1,4 @@
-package monitor
+﻿package monitor
 
 import (
 	"context"
@@ -11,16 +11,16 @@ import (
 	"github.com/shirou/gopsutil/v4/mem"
 	"github.com/shirou/gopsutil/v4/process"
 
-	"github.com/nezhahq/agent/model"
-	"github.com/nezhahq/agent/pkg/logger"
-	"github.com/nezhahq/agent/pkg/monitor/conn"
-	"github.com/nezhahq/agent/pkg/monitor/cpu"
-	"github.com/nezhahq/agent/pkg/monitor/disk"
-	"github.com/nezhahq/agent/pkg/monitor/gpu"
-	"github.com/nezhahq/agent/pkg/monitor/load"
-	"github.com/nezhahq/agent/pkg/monitor/nic"
-	"github.com/nezhahq/agent/pkg/monitor/temperature"
-	"github.com/nezhahq/agent/pkg/util"
+	"github.com/komari-monitor/komari-agent/model"
+	"github.com/komari-monitor/komari-agent/pkg/logger"
+	"github.com/komari-monitor/komari-agent/pkg/monitor/conn"
+	"github.com/komari-monitor/komari-agent/pkg/monitor/cpu"
+	"github.com/komari-monitor/komari-agent/pkg/monitor/disk"
+	"github.com/komari-monitor/komari-agent/pkg/monitor/gpu"
+	"github.com/komari-monitor/komari-agent/pkg/monitor/load"
+	"github.com/komari-monitor/komari-agent/pkg/monitor/nic"
+	"github.com/komari-monitor/komari-agent/pkg/monitor/temperature"
+	"github.com/komari-monitor/komari-agent/pkg/util"
 )
 
 var (

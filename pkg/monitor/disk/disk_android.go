@@ -1,4 +1,4 @@
-//go:build android
+﻿//go:build android
 
 // Android 专用磁盘监控实现
 // 使用 syscall.Statfs 获取磁盘空间信息，绕过 gopsutil 的 psDisk.Partitions

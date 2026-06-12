@@ -1,4 +1,4 @@
-//go:build !android
+﻿//go:build !android
 
 package disk
 
@@ -11,7 +11,7 @@ import (
 
 	psDisk "github.com/shirou/gopsutil/v4/disk"
 
-	"github.com/nezhahq/agent/pkg/util"
+	"github.com/komari-monitor/komari-agent/pkg/util"
 )
 
 var expectDiskFsTypes = []string{

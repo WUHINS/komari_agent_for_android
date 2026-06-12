@@ -1,4 +1,4 @@
-//go:build android
+﻿//go:build android
 
 // Android 专用网络接口监控实现
 // 直接读取 /proc/net/dev 获取网卡流量数据，绕过 gopsutil 库

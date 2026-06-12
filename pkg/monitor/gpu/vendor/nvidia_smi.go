@@ -1,4 +1,4 @@
-package vendor
+﻿package vendor
 
 // Modified from https://github.com/influxdata/telegraf/blob/master/plugins/inputs/nvidia_smi/nvidia_smi.go
 // Original License: MIT

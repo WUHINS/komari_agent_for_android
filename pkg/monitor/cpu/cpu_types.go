@@ -1,4 +1,4 @@
-package cpu
+﻿package cpu
 
 // CPUHostType 是 CPU 上下文键的类型
 type CPUHostType string

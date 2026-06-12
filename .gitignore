@@ -6,3 +6,5 @@
 dist
 /model/zconfig.go
 nezha-agent-linux
+
+*.exe

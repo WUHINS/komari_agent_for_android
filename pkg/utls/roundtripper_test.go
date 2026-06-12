@@ -1,4 +1,4 @@
-package utls_test
+﻿package utls_test
 
 import (
 	"net/http"
@@ -7,8 +7,8 @@ import (
 
 	utls "github.com/refraction-networking/utls"
 
-	"github.com/nezhahq/agent/pkg/util"
-	utlsx "github.com/nezhahq/agent/pkg/utls"
+	"github.com/komari-monitor/komari-agent/pkg/util"
+	utlsx "github.com/komari-monitor/komari-agent/pkg/utls"
 )
 
 const url = "https://www.patreon.com/login"

@@ -1,152 +1,359 @@
-package model
+﻿package model
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
+	"strconv"
 	"strings"
-	"sync"
-
-	"github.com/hashicorp/go-uuid"
-	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/file"
-	"github.com/knadh/koanf/v2"
-	"sigs.k8s.io/yaml"
 )
 
-//go:generate go run gen/gen.go -type=AgentConfig
+type Command int
+
+const (
+	CommandRun Command = iota
+	CommandListDisk
+	CommandCheckMem
+)
+
 type AgentConfig struct {
-	Debug bool `koanf:"debug" json:"debug"`
+	Debug bool `json:"debug"`
 
-	Server       string `koanf:"server" json:"server"`               // 服务器地址
-	ClientSecret string `koanf:"client_secret" json:"client_secret"` // 客户端密钥
-	UUID         string `koanf:"uuid" json:"uuid"`
+	// Connection
+	Endpoint string `json:"endpoint"`
+	Token    string `json:"token"`
+	UUID     string `json:"uuid"`
 
-	HardDrivePartitionAllowlist []string        `koanf:"hard_drive_partition_allowlist" json:"hard_drive_partition_allowlist,omitempty"`
-	NICAllowlist                map[string]bool `koanf:"nic_allowlist" json:"nic_allowlist,omitempty"`
-	DNS                         []string        `koanf:"dns" json:"dns,omitempty"`
-	GPU                         bool            `koanf:"gpu" json:"gpu"`                                         // 是否检查GPU
-	Temperature                 bool            `koanf:"temperature" json:"temperature"`                         // 是否检查温度
-	SkipConnectionCount         bool            `koanf:"skip_connection_count" json:"skip_connection_count"`     // 跳过连接数检查
-	SkipProcsCount              bool            `koanf:"skip_procs_count" json:"skip_procs_count"`               // 跳过进程数量检查
-	DisableAutoUpdate           bool            `koanf:"disable_auto_update" json:"disable_auto_update"`         // 关闭自动更新
-	DisableForceUpdate          bool            `koanf:"disable_force_update" json:"disable_force_update"`       // 关闭强制更新
-	DisableCommandExecute       bool            `koanf:"disable_command_execute" json:"disable_command_execute"` // 关闭命令执行
-	ReportDelay                 uint32          `koanf:"report_delay" json:"report_delay"`                       // 报告间隔
-	TLS                         bool            `koanf:"tls" json:"tls"`                                         // 是否使用TLS加密传输至服务端
-	InsecureTLS                 bool            `koanf:"insecure_tls" json:"insecure_tls"`                       // 是否禁用证书检查
-	UseIPv6CountryCode          bool            `koanf:"use_ipv6_country_code" json:"use_ipv6_country_code"`     // 默认优先展示IPv6旗帜
-	UseGiteeToUpgrade           bool            `koanf:"use_gitee_to_upgrade" json:"use_gitee_to_upgrade"`       // 强制从Gitee获取更新
-	UseAtomGitToUpgrade         bool            `koanf:"use_atomgit_to_upgrade" json:"use_atomgit_to_upgrade"`   // 强制从AtomGit获取更新
-	DisableNat                  bool            `koanf:"disable_nat" json:"disable_nat"`                         // 关闭内网穿透
-	DisableSendQuery            bool            `koanf:"disable_send_query" json:"disable_send_query"`           // 关闭发送TCP/ICMP/HTTP请求
-	IPReportPeriod              uint32          `koanf:"ip_report_period" json:"ip_report_period"`               // IP上报周期
-	SelfUpdatePeriod            uint32          `koanf:"self_update_period" json:"self_update_period"`           // 自动更新周期
-	CustomIPApi                 []string        `koanf:"custom_ip_api" json:"custom_ip_api,omitempty"`           // 自定义 IP API                      // 重载间隔
+	// Report
+	Interval          float64 `json:"interval"`
+	InfoReportPeriod  int     `json:"info_report_period"`
+	MaxRetries        int     `json:"max_retries"`
+	ReconnectInterval int     `json:"reconnect_interval"`
 
-	k        *koanf.Koanf `json:"-"`
-	filePath string       `json:"-"`
+	// Features
+	DisableAutoUpdate bool `json:"disable_auto_update"`
+	DisableCommand    bool `json:"disable_command"`
+	DisableWebSSH     bool `json:"disable_web_ssh"`
+	DisableNAT        bool `json:"disable_nat"`
+	DisableSendQuery  bool `json:"disable_send_query"`
+
+	// Monitoring
+	GPU             bool   `json:"gpu"`
+	Temperature     bool   `json:"temperature"`
+	SkipConnCount   bool   `json:"skip_conn_count"`
+	SkipProcsCount  bool   `json:"skip_procs_count"`
+
+	// Network
+	NICAllowlist map[string]bool `json:"nic_allowlist,omitempty"`
+	ExcludeNICs  string          `json:"exclude_nics,omitempty"`
+	IncludeNICs  string          `json:"include_nics,omitempty"`
+	DNS          []string        `json:"dns,omitempty"`
+	CustomDNS    string          `json:"custom_dns,omitempty"`
+
+	// Disk
+	HardDrivePartitionAllowlist []string `json:"hard_drive_partition_allowlist,omitempty"`
+	IncludeMountpoints          string   `json:"include_mountpoints,omitempty"`
+
+	// IP
+	CustomIPv4      string `json:"custom_ipv4,omitempty"`
+	CustomIPv6      string `json:"custom_ipv6,omitempty"`
+	GetIPFromNIC    bool   `json:"get_ip_from_nic"`
+	UseIPv6Country  bool   `json:"use_ipv6_country"`
+	CustomIPApi     []string `json:"custom_ip_api,omitempty"`
+
+	// TLS
+	TLS         bool `json:"tls"`
+	InsecureTLS bool `json:"insecure_tls"`
+
+	// Update
+	DisableForceUpdate bool   `json:"disable_force_update"`
+	SelfUpdatePeriod   int    `json:"self_update_period"`
+
+	// Auto discovery
+	AutoDiscoveryKey string `json:"auto_discovery_key,omitempty"`
+
+	// Cloudflare Access
+	CFAccessClientID     string `json:"cf_access_client_id,omitempty"`
+	CFAccessClientSecret string `json:"cf_access_client_secret,omitempty"`
+
+	// Memory
+	MemoryIncludeCache   bool `json:"memory_include_cache"`
+	MemoryReportRawUsed  bool `json:"memory_report_raw_used"`
+
+	// Misc
+	MonthRotate  int    `json:"month_rotate"`
+	ShowWarning  bool   `json:"show_warning"`
+	HostProc     string `json:"host_proc,omitempty"`
+	ConfigFile   string `json:"config_file,omitempty"`
+
+	// Internal
+	command Command
 }
 
-// Read 从给定的文件目录加载配置文件
-func (c *AgentConfig) Read(path string) error {
-	c.k = koanf.New("")
-	c.filePath = path
-	saveOnce := sync.OnceValue(c.Save)
-
-	if _, err := os.Stat(path); err == nil {
-		err = c.k.Load(file.Provider(path), new(kubeyaml))
-		if err != nil {
-			return err
-		}
-	} else {
-		defer saveOnce()
+func DefaultConfig() *AgentConfig {
+	return &AgentConfig{
+		Interval:          1.0,
+		InfoReportPeriod:  5,
+		MaxRetries:        3,
+		ReconnectInterval: 5,
 	}
+}
 
-	err := c.k.Load(env.Provider("NZ_", "", func(s string) string {
-		return strings.ToLower(strings.TrimPrefix(s, "NZ_"))
-	}), nil)
-	if err != nil {
-		return err
-	}
+func LoadConfig(path string) (*AgentConfig, error) {
+	cfg := DefaultConfig()
 
-	err = c.k.Unmarshal("", c)
-	if err != nil {
-		return err
-	}
-
-	if c.UUID == "" {
-		if uuid, err := uuid.GenerateUUID(); err == nil {
-			c.UUID = uuid
-			defer saveOnce()
-		} else {
-			return fmt.Errorf("generate UUID failed: %v", err)
+	if path != "" {
+		data, err := os.ReadFile(path)
+		if err == nil {
+			if err := json.Unmarshal(data, cfg); err != nil {
+				return nil, fmt.Errorf("failed to parse config file: %w", err)
+			}
+		} else if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
 		}
 	}
 
-	return ValidateConfig(c, false)
+	cfg.loadEnv()
+
+	return cfg, nil
+}
+
+func ParseArgs(args []string) (*AgentConfig, error) {
+	cfg := DefaultConfig()
+
+	for i := 1; i < len(args); i++ {
+		arg := args[i]
+
+		switch {
+		case arg == "list-disk":
+			cfg.command = CommandListDisk
+		case arg == "check-mem":
+			cfg.command = CommandCheckMem
+		case arg == "--disable-auto-update" || arg == "--disable-auto-update=true":
+			cfg.DisableAutoUpdate = true
+		case arg == "--disable-web-ssh" || arg == "--disable-web-ssh=true":
+			cfg.DisableWebSSH = true
+		case strings.HasPrefix(arg, "--token="):
+			cfg.Token = strings.TrimPrefix(arg, "--token=")
+		case arg == "-t" || arg == "--token":
+			if v := nextArg(args, &i); v != "" {
+				cfg.Token = v
+			}
+		case strings.HasPrefix(arg, "--endpoint="):
+			cfg.Endpoint = strings.TrimPrefix(arg, "--endpoint=")
+		case arg == "-e" || arg == "--endpoint":
+			if v := nextArg(args, &i); v != "" {
+				cfg.Endpoint = v
+			}
+		case strings.HasPrefix(arg, "--interval="):
+			v := strings.TrimPrefix(arg, "--interval=")
+			if f, err := strconv.ParseFloat(v, 64); err == nil {
+				cfg.Interval = f
+			}
+		case arg == "-i" || arg == "--interval":
+			if v := nextArg(args, &i); v != "" {
+				if f, err := strconv.ParseFloat(v, 64); err == nil {
+					cfg.Interval = f
+				}
+			}
+		case strings.HasPrefix(arg, "--max-retries="):
+			v := strings.TrimPrefix(arg, "--max-retries=")
+			if n, err := strconv.Atoi(v); err == nil {
+				cfg.MaxRetries = n
+			}
+		case strings.HasPrefix(arg, "--reconnect-interval="):
+			v := strings.TrimPrefix(arg, "--reconnect-interval=")
+			if n, err := strconv.Atoi(v); err == nil {
+				cfg.ReconnectInterval = n
+			}
+		case strings.HasPrefix(arg, "--info-report-interval="):
+			v := strings.TrimPrefix(arg, "--info-report-interval=")
+			if n, err := strconv.Atoi(v); err == nil {
+				cfg.InfoReportPeriod = n
+			}
+		case strings.HasPrefix(arg, "--include-nics="):
+			cfg.IncludeNICs = strings.TrimPrefix(arg, "--include-nics=")
+		case strings.HasPrefix(arg, "--exclude-nics="):
+			cfg.ExcludeNICs = strings.TrimPrefix(arg, "--exclude-nics=")
+		case strings.HasPrefix(arg, "--include-mountpoint="):
+			cfg.IncludeMountpoints = strings.TrimPrefix(arg, "--include-mountpoint=")
+		case strings.HasPrefix(arg, "--month-rotate="):
+			v := strings.TrimPrefix(arg, "--month-rotate=")
+			if n, err := strconv.Atoi(v); err == nil {
+				cfg.MonthRotate = n
+			}
+		case strings.HasPrefix(arg, "--cf-access-client-id="):
+			cfg.CFAccessClientID = strings.TrimPrefix(arg, "--cf-access-client-id=")
+		case strings.HasPrefix(arg, "--cf-access-client-secret="):
+			cfg.CFAccessClientSecret = strings.TrimPrefix(arg, "--cf-access-client-secret=")
+		case strings.HasPrefix(arg, "--custom-dns="):
+			cfg.CustomDNS = strings.TrimPrefix(arg, "--custom-dns=")
+		case strings.HasPrefix(arg, "--custom-ipv4="):
+			cfg.CustomIPv4 = strings.TrimPrefix(arg, "--custom-ipv4=")
+		case strings.HasPrefix(arg, "--custom-ipv6="):
+			cfg.CustomIPv6 = strings.TrimPrefix(arg, "--custom-ipv6=")
+		case strings.HasPrefix(arg, "--config="):
+			cfg.ConfigFile = strings.TrimPrefix(arg, "--config=")
+		case strings.HasPrefix(arg, "--auto-discovery="):
+			cfg.AutoDiscoveryKey = strings.TrimPrefix(arg, "--auto-discovery=")
+		case arg == "-u" || arg == "--ignore-unsafe-cert":
+			cfg.InsecureTLS = true
+		case arg == "--gpu":
+			cfg.GPU = true
+		case arg == "--debug-log":
+			cfg.Debug = true
+		case arg == "--show-warning":
+			cfg.ShowWarning = true
+		case arg == "--get-ip-addr-from-nic":
+			cfg.GetIPFromNIC = true
+		case arg == "--memory-include-cache":
+			cfg.MemoryIncludeCache = true
+		case arg == "--memory-exclude-bcf":
+			cfg.MemoryReportRawUsed = true
+		case strings.HasPrefix(arg, "--host-proc="):
+			cfg.HostProc = strings.TrimPrefix(arg, "--host-proc=")
+		default:
+			if strings.HasPrefix(arg, "-") {
+				nextArg(args, &i)
+			}
+		}
+	}
+
+	cfg.loadEnv()
+
+	if cfg.ConfigFile != "" {
+		data, err := os.ReadFile(cfg.ConfigFile)
+		if err == nil {
+			json.Unmarshal(data, cfg)
+		}
+	}
+
+	return cfg, nil
+}
+
+func (c *AgentConfig) loadEnv() {
+	if v := os.Getenv("AGENT_ENDPOINT"); v != "" {
+		c.Endpoint = v
+	}
+	if v := os.Getenv("AGENT_TOKEN"); v != "" {
+		c.Token = v
+	}
+	if v := os.Getenv("AGENT_AUTO_DISCOVERY_KEY"); v != "" {
+		c.AutoDiscoveryKey = v
+	}
+	if v := os.Getenv("AGENT_INTERVAL"); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			c.Interval = f
+		}
+	}
+	if v := os.Getenv("AGENT_MAX_RETRIES"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			c.MaxRetries = n
+		}
+	}
+	if v := os.Getenv("AGENT_RECONNECT_INTERVAL"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			c.ReconnectInterval = n
+		}
+	}
+	if v := os.Getenv("AGENT_INFO_REPORT_INTERVAL"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			c.InfoReportPeriod = n
+		}
+	}
+	if v := os.Getenv("AGENT_DISABLE_AUTO_UPDATE"); v == "true" || v == "1" {
+		c.DisableAutoUpdate = true
+	}
+	if v := os.Getenv("AGENT_DISABLE_WEB_SSH"); v == "true" || v == "1" {
+		c.DisableWebSSH = true
+	}
+	if v := os.Getenv("AGENT_DEBUG_LOG"); v == "true" || v == "1" {
+		c.Debug = true
+	}
+	if v := os.Getenv("AGENT_INCLUDE_NICS"); v != "" {
+		c.IncludeNICs = v
+	}
+	if v := os.Getenv("AGENT_EXCLUDE_NICS"); v != "" {
+		c.ExcludeNICs = v
+	}
+	if v := os.Getenv("AGENT_INCLUDE_MOUNTPOINTS"); v != "" {
+		c.IncludeMountpoints = v
+	}
+	if v := os.Getenv("AGENT_MONTH_ROTATE"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			c.MonthRotate = n
+		}
+	}
+	if v := os.Getenv("AGENT_CUSTOM_DNS"); v != "" {
+		c.CustomDNS = v
+	}
+	if v := os.Getenv("AGENT_ENABLE_GPU"); v == "true" || v == "1" {
+		c.GPU = true
+	}
+	if v := os.Getenv("AGENT_CUSTOM_IPV4"); v != "" {
+		c.CustomIPv4 = v
+	}
+	if v := os.Getenv("AGENT_CUSTOM_IPV6"); v != "" {
+		c.CustomIPv6 = v
+	}
+	if v := os.Getenv("AGENT_GET_IP_ADDR_FROM_NIC"); v == "true" || v == "1" {
+		c.GetIPFromNIC = true
+	}
+	if v := os.Getenv("AGENT_IGNORE_UNSAFE_CERT"); v == "true" || v == "1" {
+		c.InsecureTLS = true
+	}
+	if v := os.Getenv("AGENT_CF_ACCESS_CLIENT_ID"); v != "" {
+		c.CFAccessClientID = v
+	}
+	if v := os.Getenv("AGENT_CF_ACCESS_CLIENT_SECRET"); v != "" {
+		c.CFAccessClientSecret = v
+	}
+	if v := os.Getenv("AGENT_MEMORY_INCLUDE_CACHE"); v == "true" || v == "1" {
+		c.MemoryIncludeCache = true
+	}
+	if v := os.Getenv("AGENT_MEMORY_REPORT_RAW_USED"); v == "true" || v == "1" {
+		c.MemoryReportRawUsed = true
+	}
+	if v := os.Getenv("AGENT_CONFIG_FILE"); v != "" {
+		c.ConfigFile = v
+	}
+	if v := os.Getenv("AGENT_SHOW_WARNING"); v == "true" || v == "1" {
+		c.ShowWarning = true
+	}
+	if v := os.Getenv("HOST_PROC"); v != "" {
+		c.HostProc = v
+	}
+}
+
+func nextArg(args []string, i *int) string {
+	if *i+1 >= len(args) {
+		return ""
+	}
+	n := args[*i+1]
+	if strings.HasPrefix(n, "-") {
+		return ""
+	}
+	*i++
+	return n
 }
 
 func (c *AgentConfig) Save() error {
-	data, err := yaml.Marshal(c)
+	data, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
 	}
+	path := c.ConfigFile
+	if path == "" {
+		path = "config.json"
+	}
+	return os.WriteFile(path, data, 0600)
+}
 
-	dir := filepath.Dir(c.filePath)
-	if err := os.MkdirAll(dir, 0750); err != nil {
+func (c *AgentConfig) Read(path string) error {
+	cfg, err := LoadConfig(path)
+	if err != nil {
 		return err
 	}
-
-	return os.WriteFile(c.filePath, data, 0600)
-}
-
-func ValidateConfig(c *AgentConfig, isRemoteEdit bool) error {
-	if c.ReportDelay == 0 {
-		c.ReportDelay = 3
-	}
-
-	if c.IPReportPeriod == 0 {
-		c.IPReportPeriod = 1800
-	} else if c.IPReportPeriod < 30 {
-		c.IPReportPeriod = 30
-	}
-
-	if c.ReportDelay < 1 || c.ReportDelay > 4 {
-		return errors.New("report-delay ranges from 1-4")
-	}
-
-	if !isRemoteEdit {
-		if c.Server == "" {
-			return errors.New("server address should not be empty")
-		}
-
-		if c.ClientSecret == "" {
-			return errors.New("client_secret must be specified")
-		}
-
-		if _, err := uuid.ParseUUID(c.UUID); err != nil {
-			return err
-		}
-	}
-
+	*c = *cfg
 	return nil
-}
-
-type kubeyaml struct{}
-
-// Unmarshal parses the given YAML bytes.
-func (k *kubeyaml) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var out map[string]interface{}
-	if err := yaml.Unmarshal(b, &out); err != nil {
-		return nil, err
-	}
-
-	return out, nil
-}
-
-// Marshal marshals the given config map to YAML bytes.
-func (k *kubeyaml) Marshal(o map[string]interface{}) ([]byte, error) {
-	return yaml.Marshal(o)
 }

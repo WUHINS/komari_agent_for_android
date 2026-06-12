@@ -1,4 +1,4 @@
-//go:build darwin && arm64
+﻿//go:build darwin && arm64
 
 package gpu
 
@@ -10,7 +10,7 @@ import (
 
 	"github.com/ebitengine/purego"
 
-	"github.com/nezhahq/agent/pkg/util"
+	"github.com/komari-monitor/komari-agent/pkg/util"
 )
 
 type (

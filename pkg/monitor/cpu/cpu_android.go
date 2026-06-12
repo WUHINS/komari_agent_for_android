@@ -1,4 +1,4 @@
-//go:build android
+﻿//go:build android
 
 // Android 专用 CPU 监控实现
 // 直接读取 /proc/stat 和 /proc/cpuinfo，绕过 gopsutil 库

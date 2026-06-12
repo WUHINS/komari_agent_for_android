@@ -1,4 +1,4 @@
-//go:build darwin
+﻿//go:build darwin
 
 package logger
 
@@ -19,7 +19,7 @@ func (s *serviceLogger) Infof(format string, v ...any) error {
 	return s.Warningf(format, v...)
 }
 
-func NewNezhaServiceLogger(s service.Service, errs chan<- error) (service.Logger, error) {
+func NewServiceLoggerFromService(s service.Service, errs chan<- error) (service.Logger, error) {
 	logger, err := s.Logger(errs)
 	if err != nil {
 		return nil, err

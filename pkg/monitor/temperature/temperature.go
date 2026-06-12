@@ -1,4 +1,4 @@
-package temperature
+﻿package temperature
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/shirou/gopsutil/v4/sensors"
 
-	"github.com/nezhahq/agent/model"
+	"github.com/komari-monitor/komari-agent/model"
 )
 
 var sensorIgnoreList = []string{

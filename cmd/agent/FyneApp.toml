@@ -1,6 +1,6 @@
 [Details]
   Icon = "Icon.png"
-  Name = "Nezha Agent"
-  ID = "com.nezhahq.agent"
+  Name = "Komari Agent"
+  ID = "com.komari.agent"
   Version = "1.0.0"
   Build = 1

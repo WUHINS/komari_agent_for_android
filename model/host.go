@@ -1,8 +1,4 @@
-package model
-
-import (
-	pb "github.com/nezhahq/agent/proto"
-)
+﻿package model
 
 type SensorTemperature struct {
 	Name        string
@@ -29,36 +25,6 @@ type HostState struct {
 	GPU            []float64
 }
 
-func (s *HostState) PB() *pb.State {
-	var ts []*pb.State_SensorTemperature
-	for _, t := range s.Temperatures {
-		ts = append(ts, &pb.State_SensorTemperature{
-			Name:        t.Name,
-			Temperature: t.Temperature,
-		})
-	}
-
-	return &pb.State{
-		Cpu:            s.CPU,
-		MemUsed:        s.MemUsed,
-		SwapUsed:       s.SwapUsed,
-		DiskUsed:       s.DiskUsed,
-		NetInTransfer:  s.NetInTransfer,
-		NetOutTransfer: s.NetOutTransfer,
-		NetInSpeed:     s.NetInSpeed,
-		NetOutSpeed:    s.NetOutSpeed,
-		Uptime:         s.Uptime,
-		Load1:          s.Load1,
-		Load5:          s.Load5,
-		Load15:         s.Load15,
-		TcpConnCount:   s.TcpConnCount,
-		UdpConnCount:   s.UdpConnCount,
-		ProcessCount:   s.ProcessCount,
-		Temperatures:   ts,
-		Gpu:            s.GPU,
-	}
-}
-
 type Host struct {
 	Platform        string
 	PlatformVersion string
@@ -71,22 +37,6 @@ type Host struct {
 	BootTime        uint64
 	Version         string
 	GPU             []string
-}
-
-func (h *Host) PB() *pb.Host {
-	return &pb.Host{
-		Platform:        h.Platform,
-		PlatformVersion: h.PlatformVersion,
-		Cpu:             h.CPU,
-		MemTotal:        h.MemTotal,
-		DiskTotal:       h.DiskTotal,
-		SwapTotal:       h.SwapTotal,
-		Arch:            h.Arch,
-		Virtualization:  h.Virtualization,
-		BootTime:        h.BootTime,
-		Version:         h.Version,
-		Gpu:             h.GPU,
-	}
 }
 
 type GeoIP struct {

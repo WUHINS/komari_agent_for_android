@@ -1,4 +1,4 @@
-package monitor
+﻿package monitor
 
 import (
 	"io"
@@ -8,10 +8,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nezhahq/agent/pkg/logger"
-	"github.com/nezhahq/agent/pkg/util"
-	pb "github.com/nezhahq/agent/proto"
+	"github.com/komari-monitor/komari-agent/pkg/logger"
+	"github.com/komari-monitor/komari-agent/pkg/util"
 )
+
+type GeoIP struct {
+	Use6 bool
+	IP   GeoIPAddr
+}
+
+type GeoIPAddr struct {
+	IPv4 string
+	IPv6 string
+}
 
 var (
 	cfList = []string{
@@ -31,17 +40,16 @@ var (
 	latestRetryAt   time.Time
 )
 
-// UpdateIP 按设置时间间隔更新IP地址的缓存
-func FetchIP(useIPv6CountryCode bool) *pb.GeoIP {
+func FetchIP(useIPv6CountryCode bool) *GeoIP {
 	logger.Println("正在更新本地缓存IP信息")
 
 	if retryTimes > 2 && time.Now().Before(latestRetryAt.Add(latestRetryAt.Sub(failedStartedAt)*time.Duration(2))) {
 		logger.Println("IP地址获取失败次数过多，fallback到agent连接IP")
-		return &pb.GeoIP{
+		return &GeoIP{
 			Use6: false,
-			Ip: &pb.IP{
-				Ipv4: "",
-				Ipv6: "",
+			IP: GeoIPAddr{
+				IPv4: "",
+				IPv6: "",
 			},
 		}
 	}
@@ -87,11 +95,11 @@ func FetchIP(useIPv6CountryCode bool) *pb.GeoIP {
 
 	if GeoQueryIP != "" {
 		retryTimes = 0
-		return &pb.GeoIP{
+		return &GeoIP{
 			Use6: useIPv6CountryCode,
-			Ip: &pb.IP{
-				Ipv4: ipv4,
-				Ipv6: ipv6,
+			IP: GeoIPAddr{
+				IPv4: ipv4,
+				IPv6: ipv6,
 			},
 		}
 	}
@@ -112,14 +120,12 @@ func fetchIP(servers []string, isV6 bool) string {
 	var resp *http.Response
 	var err error
 
-	// 双栈支持参差不齐，不能随机请求，有些 IPv6 取不到 IP
 	for _, server := range servers {
 		if isV6 {
 			resp, err = httpGetWithUA(httpClientV6, server)
 		} else {
 			resp, err = httpGetWithUA(httpClientV4, server)
 		}
-		// 遇到单栈机器提前退出
 		if err != nil && strings.Contains(err.Error(), "no route to host") {
 			return ip
 		}
@@ -145,11 +151,9 @@ func fetchIP(servers []string, isV6 bool) string {
 				}
 			}
 			parsedIP := net.ParseIP(newIP)
-			// 没取到 v6 IP
 			if isV6 && (parsedIP == nil || parsedIP.To4() != nil) {
 				continue
 			}
-			// 没取到 v4 IP
 			if !isV6 && (parsedIP == nil || parsedIP.To4() == nil) {
 				continue
 			}

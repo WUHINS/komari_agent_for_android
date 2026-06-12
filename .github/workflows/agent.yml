@@ -12,7 +12,7 @@ on:
       - ".github/workflows/test.yml"
       - ".github/workflows/contributors.yml"
       - "README.md"
-      - ".goreleaser.yml"
+
   pull_request:
     branches:
       - main
@@ -59,42 +59,29 @@ jobs:
         with:
           go-version: ^1.25.2
 
-      - name: Build Test
-        if: github.event_name != 'push' || !contains(github.ref, 'refs/tags/')
-        uses: goreleaser/goreleaser-action@v6
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          GOMIPS: ${{ matrix.gomips }}
-        with:
-          distribution: goreleaser
-          version: "~> v2"
-          args: build --single-target --clean --skip=validate --snapshot
-
       - name: Build
-        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
-        uses: goreleaser/goreleaser-action@v6
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           GOMIPS: ${{ matrix.gomips }}
-        with:
-          distribution: goreleaser
-          version: "~> v2"
-          args: build --single-target --clean --skip=validate
+        run: |
+          out="dist/komari-agent"
+          if [ "$GOOS" = "windows" ]; then out="${out}.exe"; fi
+          mkdir -p dist
+          CGO_ENABLED=0 go build -o "$out" -ldflags="-s -w" ./cmd/agent
 
       - name: Archive
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-        run: zip -jr dist/nezha-agent_${GOOS}_${GOARCH}.zip dist/*/*
+        run: zip -jr dist/komari-agent_${GOOS}_${GOARCH}.zip dist/*/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nezha-agent_${{ matrix.goos }}_${{ matrix.goarch }}
+          name: komari-agent_${{ matrix.goos }}_${{ matrix.goarch }}
           path: |
-            ./dist/nezha-agent_${{ matrix.goos }}_${{ matrix.goarch }}.zip
+            ./dist/komari-agent_${{ matrix.goos }}_${{ matrix.goarch }}.zip
 
   release:
     runs-on: ubuntu-latest
@@ -118,11 +105,4 @@ jobs:
             assets/*/*.zip
           generate_release_notes: true
 
-      - name: Trigger sync
-        env:
-          GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
-          GH_DEBUG: api
-        run: |
-          gh workflow run sync-release.yml
-          gh workflow run sync-release-atomgit.yml
+
