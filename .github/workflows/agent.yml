@@ -20,7 +20,7 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         goos: [linux, windows, darwin, freebsd]
         goarch: [amd64, arm64, 386]
@@ -74,7 +74,7 @@ jobs:
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-        run: zip -jr dist/komari-agent_${GOOS}_${GOARCH}.zip dist/*/*
+        run: zip -jr dist/komari-agent_${GOOS}_${GOARCH}.zip dist/komari-agent*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
