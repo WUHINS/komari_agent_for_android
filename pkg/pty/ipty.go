@@ -1,4 +1,4 @@
-﻿package pty
+package pty
 
 type IPty interface {
 	Write(p []byte) (n int, err error)

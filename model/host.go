@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 type SensorTemperature struct {
 	Name        string

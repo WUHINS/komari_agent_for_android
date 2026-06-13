@@ -1,4 +1,4 @@
-﻿package utls_test
+package utls_test
 
 import (
 	"net/http"
