@@ -1,4 +1,4 @@
-package disk
+﻿package disk
 
 // DiskKeyType 是 Disk 上下文键的类型
 type DiskKeyType string

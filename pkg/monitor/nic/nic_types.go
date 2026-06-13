@@ -1,4 +1,4 @@
-package nic
+﻿package nic
 
 import "github.com/cloudflare/ahocorasick"
 

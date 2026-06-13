@@ -1,4 +1,4 @@
-//go:build gui || android
+﻿//go:build gui || android
 
 package main
 

@@ -1,4 +1,4 @@
-package fm
+﻿package fm
 
 import (
 	"bytes"
@@ -92,6 +92,7 @@ func (t *Task) download() {
 		return
 	}
 
+	// Send header (12 bytes)
 	var header bytes.Buffer
 	headerData := CreateFile(&header, uint64(fileSize))
 	if err := t.stream.Send(headerData); err != nil {
@@ -147,14 +148,14 @@ func (t *Task) upload() {
 
 	t.printf("receiving file: %s, size: %d", file.Name(), fileSize)
 	for totalReceived < fileSize {
-		data, err := t.stream.Recv()
-		if err != nil {
+		var err error
+		if t.payload, err = t.stream.Recv(); err != nil {
 			t.printf("Error receiving data: %s", err)
 			t.stream.Send(CreateErr(err))
 			return
 		}
 
-		bytesWritten, err := file.Write(data)
+		bytesWritten, err := file.Write(t.payload)
 		if err != nil {
 			t.printf("Error writing to file: %s", err)
 			t.stream.Send(CreateErr(err))
@@ -164,7 +165,7 @@ func (t *Task) upload() {
 		totalReceived += uint64(bytesWritten)
 	}
 	t.printf("received file %s.", file.Name())
-	t.stream.Send(completeIdentifier)
+	t.stream.Send(completeIdentifier) // NZUP
 }
 
 type bp struct {
