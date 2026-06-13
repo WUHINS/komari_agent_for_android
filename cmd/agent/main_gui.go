@@ -98,6 +98,7 @@ func main() {
 			return len(logLines)
 		},
 		func() fyne.CanvasObject {
+			// Wrapping 需要使用 RichText 或支持换行的 Label，设置好 Wrapping
 			lbl := widget.NewLabel("Template log line")
 			lbl.Wrapping = fyne.TextWrapWord
 			return lbl
@@ -268,10 +269,10 @@ func main() {
 	logsScroll := container.NewBorder(nil, nil, nil, nil, logList)
 
 	content := container.NewBorder(
-		configContainer,                                    // 顶部表单
-		container.NewVBox(statusLabel, startStopBtn),       // 底部按钮
-		nil,                                                 // 左边
-		nil,                                                 // 右边
+		configContainer, // 顶部表单
+		container.NewVBox(statusLabel, startStopBtn), // 底部按钮
+		nil, // 左边
+		nil, // 右边
 		container.NewBorder(logPanel, nil, nil, nil, logsScroll), // 中部主要为日志
 	)
 
