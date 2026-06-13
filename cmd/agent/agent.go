@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"bytes"
@@ -73,11 +73,11 @@ var (
 )
 
 const (
-	delayWhenError = time.Second * 10
-	networkTimeOut = time.Second * 5
+	delayWhenError    = time.Second * 10
+	networkTimeOut    = time.Second * 5
 	minUpdateInterval = 1440
 	maxUpdateInterval = 2880
-	binaryName       = "komari-agent"
+	binaryName        = "komari-agent"
 )
 
 func setEnv() {
@@ -152,9 +152,15 @@ func runCLI() {
 			if err == nil && fileCfg != nil {
 				cfg.Endpoint = coalesce(cfg.Endpoint, fileCfg.Endpoint)
 				cfg.Token = coalesce(cfg.Token, fileCfg.Token)
-				if !cfg.GPU { cfg.GPU = fileCfg.GPU }
-				if cfg.Interval == 1.0 && fileCfg.Interval != 1.0 { cfg.Interval = fileCfg.Interval }
-				if cfg.MaxRetries == 3 && fileCfg.MaxRetries != 3 { cfg.MaxRetries = fileCfg.MaxRetries }
+				if !cfg.GPU {
+					cfg.GPU = fileCfg.GPU
+				}
+				if cfg.Interval == 1.0 && fileCfg.Interval != 1.0 {
+					cfg.Interval = fileCfg.Interval
+				}
+				if cfg.MaxRetries == 3 && fileCfg.MaxRetries != 3 {
+					cfg.MaxRetries = fileCfg.MaxRetries
+				}
 				cfg.DisableAutoUpdate = cfg.DisableAutoUpdate || fileCfg.DisableAutoUpdate
 				cfg.DisableCommand = cfg.DisableCommand || fileCfg.DisableCommand
 				cfg.DisableNAT = cfg.DisableNAT || fileCfg.DisableNAT
@@ -259,10 +265,10 @@ func run(ctx context.Context) {
 	}()
 
 	wsCfg := ws.Config{
-		Endpoint:        agentConfig.Endpoint,
-		Token:           agentConfig.Token,
+		Endpoint:         agentConfig.Endpoint,
+		Token:            agentConfig.Token,
 		IgnoreUnsafeCert: agentConfig.InsecureTLS,
-		Debug:           agentConfig.Debug,
+		Debug:            agentConfig.Debug,
 	}
 
 	for !shutdownReq.Load() {
@@ -524,19 +530,19 @@ func uploadBasicInfo() {
 	}
 
 	info := map[string]interface{}{
-		"cpu_name":        strings.Join(hostInfo.CPU, ", "),
-		"cpu_cores":       cpuCores,
-		"arch":            hostInfo.Arch,
-		"os":              hostInfo.Platform,
-		"kernel_version":  kernelVersion,
-		"ipv4":            "",
-		"ipv6":            "",
-		"mem_total":       hostInfo.MemTotal,
-		"swap_total":      hostInfo.SwapTotal,
-		"disk_total":      hostInfo.DiskTotal,
-		"gpu_name":        strings.Join(hostInfo.GPU, ", "),
-		"virtualization":  hostInfo.Virtualization,
-		"version":         version,
+		"cpu_name":       strings.Join(hostInfo.CPU, ", "),
+		"cpu_cores":      cpuCores,
+		"arch":           hostInfo.Arch,
+		"os":             hostInfo.Platform,
+		"kernel_version": kernelVersion,
+		"ipv4":           "",
+		"ipv6":           "",
+		"mem_total":      hostInfo.MemTotal,
+		"swap_total":     hostInfo.SwapTotal,
+		"disk_total":     hostInfo.DiskTotal,
+		"gpu_name":       strings.Join(hostInfo.GPU, ", "),
+		"virtualization": hostInfo.Virtualization,
+		"version":        version,
 	}
 
 	data, err := json.Marshal(info)
@@ -685,8 +691,8 @@ func handleTerminalTaskWS(client *ws.Client, msg *serverMessage) {
 	defer tty.Close()
 
 	termClient := ws.NewClient(ws.Config{
-		Endpoint:        fmt.Sprintf("%s/api/clients/terminal?token=%s&id=%s", strings.TrimRight(agentConfig.Endpoint, "/"), agentConfig.Token, msg.RequestID),
-		Token:           agentConfig.Token,
+		Endpoint:         fmt.Sprintf("%s/api/clients/terminal?token=%s&id=%s", strings.TrimRight(agentConfig.Endpoint, "/"), agentConfig.Token, msg.RequestID),
+		Token:            agentConfig.Token,
 		IgnoreUnsafeCert: agentConfig.InsecureTLS,
 	})
 	if err := termClient.Connect(context.Background()); err != nil {

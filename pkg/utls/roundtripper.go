@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: Copyright (c) 2016, Serene Han, Arlo Breault
+// SPDX-FileCopyrightText: Copyright (c) 2016, Serene Han, Arlo Breault
 // SPDX-FileCopyrightText: Copyright (c) 2019-2020, The Tor Project, Inc
 // SPDX-License-Identifier: BSD-3-Clause
 // https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake/-/blob/main/common/utls/roundtripper.go

@@ -1,4 +1,4 @@
-﻿//go:build android
+//go:build android
 
 // Android 专用 GPU 监控实现
 // Android 设备上不支持通过命令行工具获取 GPU 信息（nvidia-smi、rocm-smi 等均不存在），

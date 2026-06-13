@@ -1,4 +1,4 @@
-﻿//go:build gui || android
+//go:build gui || android
 
 package main
 
@@ -160,18 +160,18 @@ func main() {
 			}
 
 			agentConfig = &model.AgentConfig{
-				Endpoint:       endpointEntry.Text,
-				Token:          tokenEntry.Text,
-				UUID:           deviceUUID,
-				TLS:            tlsCheck.Checked,
-				InsecureTLS:    true,
-				DisableCommand: true,
+				Endpoint:          endpointEntry.Text,
+				Token:             tokenEntry.Text,
+				UUID:              deviceUUID,
+				TLS:               tlsCheck.Checked,
+				InsecureTLS:       true,
+				DisableCommand:    true,
 				DisableAutoUpdate: true,
-				DisableNAT:     true,
-				Interval:       1.0,
-				InfoReportPeriod: 5,
-				SkipConnCount:  true,
-				SkipProcsCount: true,
+				DisableNAT:        true,
+				Interval:          1.0,
+				InfoReportPeriod:  5,
+				SkipConnCount:     true,
+				SkipProcsCount:    true,
 			}
 
 			setEnv()

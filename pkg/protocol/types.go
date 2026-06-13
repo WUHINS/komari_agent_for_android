@@ -1,4 +1,4 @@
-﻿package protocol
+package protocol
 
 import (
 	"encoding/json"
@@ -16,14 +16,14 @@ const (
 )
 
 type ServerMessage struct {
-	Kind        ServerMessageKind
-	Message     string
-	RequestID   string
-	TaskID      string
-	Command     string
-	PingTaskID  uint64
-	PingType    string
-	PingTarget  string
+	Kind       ServerMessageKind
+	Message    string
+	RequestID  string
+	TaskID     string
+	Command    string
+	PingTaskID uint64
+	PingType   string
+	PingTarget string
 }
 
 func ParseServerMessage(data []byte) (*ServerMessage, error) {
@@ -104,10 +104,10 @@ type DiskReport struct {
 }
 
 type NetworkReport struct {
-	Up         uint64 `json:"up"`
-	Down       uint64 `json:"down"`
-	TotalUp    uint64 `json:"totalUp"`
-	TotalDown  uint64 `json:"totalDown"`
+	Up        uint64 `json:"up"`
+	Down      uint64 `json:"down"`
+	TotalUp   uint64 `json:"totalUp"`
+	TotalDown uint64 `json:"totalDown"`
 }
 
 type ConnectionReport struct {
@@ -116,16 +116,16 @@ type ConnectionReport struct {
 }
 
 type ReportPayload struct {
-	CPU         CpuReport       `json:"cpu"`
-	RAM         MemoryReport    `json:"ram"`
-	Swap        MemoryReport    `json:"swap"`
-	Load        LoadReport      `json:"load"`
-	Disk        DiskReport      `json:"disk"`
-	Network     NetworkReport   `json:"network"`
+	CPU         CpuReport        `json:"cpu"`
+	RAM         MemoryReport     `json:"ram"`
+	Swap        MemoryReport     `json:"swap"`
+	Load        LoadReport       `json:"load"`
+	Disk        DiskReport       `json:"disk"`
+	Network     NetworkReport    `json:"network"`
 	Connections ConnectionReport `json:"connections"`
-	Uptime      uint64          `json:"uptime"`
-	Process     uint64          `json:"process"`
-	Message     string          `json:"message"`
+	Uptime      uint64           `json:"uptime"`
+	Process     uint64           `json:"process"`
+	Message     string           `json:"message"`
 }
 
 func (r *ReportPayload) JSON() []byte {
@@ -134,19 +134,19 @@ func (r *ReportPayload) JSON() []byte {
 }
 
 type BasicInfoPayload struct {
-	CPUName         string `json:"cpu_name"`
-	CPUCores        uint32 `json:"cpu_cores"`
-	Arch            string `json:"arch"`
-	OS              string `json:"os"`
-	KernelVersion   string `json:"kernel_version,omitempty"`
-	IPv4            string `json:"ipv4"`
-	IPv6            string `json:"ipv6"`
-	MemTotal        uint64 `json:"mem_total"`
-	SwapTotal       uint64 `json:"swap_total"`
-	DiskTotal       uint64 `json:"disk_total"`
-	GPUName         string `json:"gpu_name"`
-	Virtualization  string `json:"virtualization"`
-	Version         string `json:"version"`
+	CPUName        string `json:"cpu_name"`
+	CPUCores       uint32 `json:"cpu_cores"`
+	Arch           string `json:"arch"`
+	OS             string `json:"os"`
+	KernelVersion  string `json:"kernel_version,omitempty"`
+	IPv4           string `json:"ipv4"`
+	IPv6           string `json:"ipv6"`
+	MemTotal       uint64 `json:"mem_total"`
+	SwapTotal      uint64 `json:"swap_total"`
+	DiskTotal      uint64 `json:"disk_total"`
+	GPUName        string `json:"gpu_name"`
+	Virtualization string `json:"virtualization"`
+	Version        string `json:"version"`
 }
 
 func (b *BasicInfoPayload) JSON() []byte {

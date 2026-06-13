@@ -1,4 +1,4 @@
-﻿package ws
+package ws
 
 import (
 	"context"
@@ -24,10 +24,10 @@ type Client struct {
 }
 
 type Config struct {
-	Endpoint        string
-	Token           string
+	Endpoint         string
+	Token            string
 	IgnoreUnsafeCert bool
-	Debug           bool
+	Debug            bool
 }
 
 func (c *Config) ReportWSUrl() string {

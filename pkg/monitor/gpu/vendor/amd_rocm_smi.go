@@ -1,4 +1,4 @@
-﻿package vendor
+package vendor
 
 // Modified from https://github.com/influxdata/telegraf/blob/master/plugins/inputs/amd_rocm_smi/amd_rocm_smi.go
 // Original License: MIT

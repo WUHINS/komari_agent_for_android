@@ -1,4 +1,4 @@
-﻿//go:build android
+//go:build android
 
 // Android 专用系统负载监控实现
 // 直接读取 /proc/loadavg，绕过 gopsutil 库

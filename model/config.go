@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"encoding/json"
@@ -38,10 +38,10 @@ type AgentConfig struct {
 	DisableSendQuery  bool `json:"disable_send_query"`
 
 	// Monitoring
-	GPU             bool   `json:"gpu"`
-	Temperature     bool   `json:"temperature"`
-	SkipConnCount   bool   `json:"skip_conn_count"`
-	SkipProcsCount  bool   `json:"skip_procs_count"`
+	GPU            bool `json:"gpu"`
+	Temperature    bool `json:"temperature"`
+	SkipConnCount  bool `json:"skip_conn_count"`
+	SkipProcsCount bool `json:"skip_procs_count"`
 
 	// Network
 	NICAllowlist map[string]bool `json:"nic_allowlist,omitempty"`
@@ -55,19 +55,19 @@ type AgentConfig struct {
 	IncludeMountpoints          string   `json:"include_mountpoints,omitempty"`
 
 	// IP
-	CustomIPv4      string `json:"custom_ipv4,omitempty"`
-	CustomIPv6      string `json:"custom_ipv6,omitempty"`
-	GetIPFromNIC    bool   `json:"get_ip_from_nic"`
-	UseIPv6Country  bool   `json:"use_ipv6_country"`
-	CustomIPApi     []string `json:"custom_ip_api,omitempty"`
+	CustomIPv4     string   `json:"custom_ipv4,omitempty"`
+	CustomIPv6     string   `json:"custom_ipv6,omitempty"`
+	GetIPFromNIC   bool     `json:"get_ip_from_nic"`
+	UseIPv6Country bool     `json:"use_ipv6_country"`
+	CustomIPApi    []string `json:"custom_ip_api,omitempty"`
 
 	// TLS
 	TLS         bool `json:"tls"`
 	InsecureTLS bool `json:"insecure_tls"`
 
 	// Update
-	DisableForceUpdate bool   `json:"disable_force_update"`
-	SelfUpdatePeriod   int    `json:"self_update_period"`
+	DisableForceUpdate bool `json:"disable_force_update"`
+	SelfUpdatePeriod   int  `json:"self_update_period"`
 
 	// Auto discovery
 	AutoDiscoveryKey string `json:"auto_discovery_key,omitempty"`
@@ -77,14 +77,14 @@ type AgentConfig struct {
 	CFAccessClientSecret string `json:"cf_access_client_secret,omitempty"`
 
 	// Memory
-	MemoryIncludeCache   bool `json:"memory_include_cache"`
-	MemoryReportRawUsed  bool `json:"memory_report_raw_used"`
+	MemoryIncludeCache  bool `json:"memory_include_cache"`
+	MemoryReportRawUsed bool `json:"memory_report_raw_used"`
 
 	// Misc
-	MonthRotate  int    `json:"month_rotate"`
-	ShowWarning  bool   `json:"show_warning"`
-	HostProc     string `json:"host_proc,omitempty"`
-	ConfigFile   string `json:"config_file,omitempty"`
+	MonthRotate int    `json:"month_rotate"`
+	ShowWarning bool   `json:"show_warning"`
+	HostProc    string `json:"host_proc,omitempty"`
+	ConfigFile  string `json:"config_file,omitempty"`
 
 	// Internal
 	command Command

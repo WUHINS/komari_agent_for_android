@@ -1,4 +1,4 @@
-﻿package fsnotifyx
+package fsnotifyx
 
 import (
 	"context"

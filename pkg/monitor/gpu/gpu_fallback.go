@@ -1,4 +1,4 @@
-﻿//go:build !(darwin && arm64) && !linux && !windows && !android
+//go:build !(darwin && arm64) && !linux && !windows && !android
 
 package gpu
 
