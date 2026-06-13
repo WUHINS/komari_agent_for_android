@@ -65,20 +65,20 @@ func main() {
 
 	// Preferences（从持久化存储中读取上次保存的配置）
 	prefs := a.Preferences()
-	savedEndpoint := prefs.StringWithFallback("endpoint", "")
-	savedToken := prefs.StringWithFallback("token", "")
+	savedServer := prefs.StringWithFallback("server", "")
+	savedSecret := prefs.StringWithFallback("secret", "")
 	savedTLS := prefs.BoolWithFallback("tls", false)
 
 	// UI Elements（构建用户界面元素）
-	endpointEntry := widget.NewEntry()
-	endpointEntry.SetText(savedEndpoint)
-	endpointEntry.SetPlaceHolder("https://panel.example.com")
+	serverEntry := widget.NewEntry()
+	serverEntry.SetText(savedServer)
+	serverEntry.SetPlaceHolder("IP:Port or Domain:Port")
 
-	tokenEntry := widget.NewEntry()
-	tokenEntry.SetText(savedToken)
-	tokenEntry.SetPlaceHolder("Token (Client Secret)")
+	secretEntry := widget.NewEntry()
+	secretEntry.SetText(savedSecret)
+	secretEntry.SetPlaceHolder("UUID (Client Secret)")
 
-	tlsCheck := widget.NewCheck("Enable TLS (wss://)", nil)
+	tlsCheck := widget.NewCheck("Enable TLS", nil)
 	tlsCheck.SetChecked(savedTLS)
 
 	scriptEntry := widget.NewMultiLineEntry()
@@ -146,18 +146,18 @@ func main() {
 			statusLabel.SetText("Status: Stopped")
 			appendLog("Agent stopped by user action.")
 		} else {
-			// 输入校验：Endpoint 和 Token 不能为空
-			if endpointEntry.Text == "" || tokenEntry.Text == "" {
+			// 输入校验：Server 和 Client Secret 不能为空
+			if serverEntry.Text == "" || secretEntry.Text == "" {
 				dialog.ShowError(
-					errors.New("Endpoint and Token are required"),
+					errors.New("Server address and Client Secret are required"),
 					w,
 				)
 				return
 			}
 
 			// 保存配置到 Preferences
-			prefs.SetString("endpoint", endpointEntry.Text)
-			prefs.SetString("token", tokenEntry.Text)
+			prefs.SetString("server", serverEntry.Text)
+			prefs.SetString("secret", secretEntry.Text)
 			prefs.SetBool("tls", tlsCheck.Checked)
 
 			deviceUUID := prefs.StringWithFallback("device_uuid", "")
@@ -173,8 +173,8 @@ func main() {
 
 			// 构建全局 Agent 配置
 			agentConfig = &model.AgentConfig{
-				Endpoint:          endpointEntry.Text,
-				Token:             tokenEntry.Text,
+				Endpoint:          serverEntry.Text,
+				Token:             secretEntry.Text,
 				UUID:              deviceUUID,
 				TLS:               tlsCheck.Checked,
 				InsecureTLS:       true,
@@ -219,31 +219,27 @@ func main() {
 	parseBtn := widget.NewButton("Auto Fill from Script", func() {
 		script := scriptEntry.Text
 		if script == "" {
-			dialog.ShowInformation("Empty", "Please paste the curl/install script first.", w)
+			dialog.ShowInformation("Empty", "Please paste the curl script first.", w)
 			return
 		}
 
-		// --endpoint VALUE / -e VALUE  / -e'VALUE' / --endpoint=VALUE
-		reEndpoint := regexp.MustCompile(`(?:-e|--endpoint)\s+['"]?([\w\.:/@-]+)['"]?`)
-		reEndpointEq := regexp.MustCompile(`(?:-e|--endpoint)=['"]?([\w\.:/@-]+)['"]?`)
-		// --token VALUE / -t VALUE / -t'VALUE' / --token=VALUE
-		reToken := regexp.MustCompile(`(?:-t|--token)\s+['"]?([\w\-]+)['"]?`)
-		reTokenEq := regexp.MustCompile(`(?:-t|--token)=['"]?([\w\-]+)['"]?`)
+		reServer := regexp.MustCompile(`NZ_SERVER=([\w\.:-]+)`)
+		reSecret := regexp.MustCompile(`NZ_CLIENT_SECRET=([\w\-]+)`)
+		reTLS := regexp.MustCompile(`NZ_TLS=(true|false)`)
 
-		mEndpoint := reEndpoint.FindStringSubmatch(script)
-		if len(mEndpoint) <= 1 {
-			mEndpoint = reEndpointEq.FindStringSubmatch(script)
-		}
-		if len(mEndpoint) > 1 {
-			endpointEntry.SetText(mEndpoint[1])
+		mServer := reServer.FindStringSubmatch(script)
+		if len(mServer) > 1 {
+			serverEntry.SetText(mServer[1])
 		}
 
-		mToken := reToken.FindStringSubmatch(script)
-		if len(mToken) <= 1 {
-			mToken = reTokenEq.FindStringSubmatch(script)
+		mSecret := reSecret.FindStringSubmatch(script)
+		if len(mSecret) > 1 {
+			secretEntry.SetText(mSecret[1])
 		}
-		if len(mToken) > 1 {
-			tokenEntry.SetText(mToken[1])
+
+		mTLS := reTLS.FindStringSubmatch(script)
+		if len(mTLS) > 1 {
+			tlsCheck.SetChecked(strings.ToLower(mTLS[1]) == "true")
 		}
 
 		dialog.ShowInformation("Success", "Fields populated from script", w)
@@ -256,10 +252,10 @@ func main() {
 		parseBtn,
 		widget.NewSeparator(),
 		widget.NewLabelWithStyle("Manual Configuration", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}),
-		widget.NewLabel("Endpoint:"),
-		endpointEntry,
-		widget.NewLabel("Token:"),
-		tokenEntry,
+		widget.NewLabel("Server:"),
+		serverEntry,
+		widget.NewLabel("Client Secret (UUID):"),
+		secretEntry,
 		tlsCheck,
 	)
 
